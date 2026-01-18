@@ -1,0 +1,21 @@
+# --- Dependencies ---
+node_modules/
+package-lock.json
+yarn.lock
+
+# --- Python & ML ---
+__pycache__/
+*.py[cod]
+.venv
+venv/
+env/
+
+# --- Environment Variables ---
+.env
+Backend/.env
+ML/.env
+*.env
+
+# --- IDE Junk ---
+.vscode/
+.DS_Store

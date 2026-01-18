@@ -27,9 +27,9 @@ function CropForm() {
 
       {result && (
         <>
-          <h3>Best Crop: {result.recommended_crop}</h3>
+          <h3>Best Crop: {result.prediction}</h3>
           <ul>
-            {result.top_3_crops.map((c, i) => (
+            {result.top_alternatives.map((c, i) => (
               <li key={i}>{c}</li>
             ))}
           </ul>
