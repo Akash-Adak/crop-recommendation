@@ -1,9 +1,9 @@
-const request = require('supertest');
-const chai = require('chai');
-const expect = chai.expect;
+import request from 'supertest';
+import { expect as _expect } from 'chai';
+const expect = _expect;
 
 // Import your Express app (adjust path if needed)
-const app = require('../server'); 
+import app from '../server'; 
 
 describe('Crop Recommendation API', () => {
   it('should return recommended crop and top 3 crops for valid input', async () => {
