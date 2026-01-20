@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "type": "module",
-  "scripts": {
-    "test": "mocha --exit",
-    "dev": "nodemon server.js"
-  },
+"scripts": {
+  "test": "mocha --exit --extension js --node-option experimental-vm-modules",
+  "dev": "nodemon server.js"
+},
+
   "keywords": [],
   "author": "",
   "license": "ISC",

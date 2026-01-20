@@ -1,9 +1,9 @@
-const axios = require("axios");
-const { getWeatherData } = require("../services/weatherService");
-const { getMarketPrice } = require("../services/marketService");
+import { post } from "axios";
+import { getWeatherData } from "../services/weatherService";
+import { getMarketPrice } from "../services/marketService";
 require("dotenv").config();
 
-exports.recommendCrop = async (req, res) => {
+export async function recommendCrop(req, res) {
   try {
     let { N, P, K, ph, lat, lon, ...otherInputs } = req.body;
     
@@ -45,7 +45,7 @@ exports.recommendCrop = async (req, res) => {
     console.log("📤 Sending payload to AI:", aiPayload);
 
     // 3. PREDICTION LAYER: Call Python
-    const mlResponse = await axios.post(
+    const mlResponse = await post(
       process.env.ML_SERVER_URL || "http://localhost:8000/predict",
       aiPayload
     );
@@ -78,4 +78,4 @@ exports.recommendCrop = async (req, res) => {
     }
     res.status(500).json({ error: "Failed to process crop recommendation" });
   }
-};
+}

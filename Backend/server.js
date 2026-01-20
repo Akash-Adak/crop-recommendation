@@ -1,7 +1,7 @@
 require("dotenv").config();
 import express, { json } from "express";
 import cors from "cors";
-import cropRoutes from "./routes/cropRoutes";
+import cropRoutes from "./routes/cropRoutes.js";
 
 const app = express();
 app.use(cors());
