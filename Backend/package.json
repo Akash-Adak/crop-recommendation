@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
 "scripts": {
-  "test": "mocha --exit --extension js --node-option experimental-vm-modules",
+  "test": "mocha \"test/**/*.mjs\" --exit",
   "dev": "nodemon server.js"
 },
 
