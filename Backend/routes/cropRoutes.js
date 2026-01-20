@@ -1,7 +1,7 @@
-const express = require("express");
-const router = express.Router();
-const { recommendCrop } = require("../controllers/cropController");
+import { Router } from "express";
+const router = Router();
+import { recommendCrop } from "../controllers/cropController.js";
 
 router.post("/recommend", recommendCrop);
 
-module.exports = router;
+export default router;
