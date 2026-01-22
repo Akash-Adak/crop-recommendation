@@ -1,94 +1,34 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Open+Sans:wght@300;400;500;600&display=swap');
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #333;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem;
-}
-
-.home-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.hero {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  margin-bottom: 3rem;
-}
-
-.hero h1 {
-  font-size: 3rem;
-  color: #333;
-  margin-bottom: 1rem;
-  font-weight: 700;
-}
-
-.hero p {
-  font-size: 1.2rem;
-  color: #666;
-  margin-bottom: 2rem;
-}
-
-.cta-button {
-  padding: 0.8rem 2rem;
-  font-size: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
-}
-
-.welcome-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 3rem 2rem;
-  border-radius: 12px;
-  margin-top: 2rem;
-}
-
-.welcome-section h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.welcome-section p {
-  font-size: 1.1rem;
-}
-
-@media (max-width: 768px) {
-  .hero h1 {
-    font-size: 2rem;
+@layer base {
+  body {
+    @apply font-open-sans bg-gray-50;
   }
+}
 
-  .main-content {
-    padding: 1rem;
+@layer components {
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-xl;
+  }
+  
+  .btn-primary {
+    @apply bg-farm-green hover:bg-farm-dark text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300;
+  }
+  
+  .btn-secondary {
+    @apply bg-sun-yellow hover:bg-orange-500 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-farm-green focus:border-transparent outline-none transition-all;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-lg p-6 border border-gray-100;
   }
 }
