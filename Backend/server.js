@@ -1,30 +1,41 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+
+import connectDb from "./util/db.js";
 import cropRoutes from "./routes/cropRoutes.js";
-import historyRoutes from './routes/historyRoutes.js';
-import mongoose from 'mongoose';
+import historyRoutes from "./routes/historyRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// DB
+connectDb();
+
+// Middleware
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true
+  })
+);
 app.use(express.json());
 
-// DATABASE CONNECTION - use cloud or local address based on env variable (preferably cloud).
-const MONGO_URI = process.env.MONGO_URI;
-mongoose.connect(MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Error:", err));
-
+// Routes
 app.use("/api/crop", cropRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/auth", userRoutes);
+
+// Health check
+app.get("/", (req, res) => {
+  res.json({ message: "API is running" });
+});
 
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-  console.log(`Node server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
 
 export default app;

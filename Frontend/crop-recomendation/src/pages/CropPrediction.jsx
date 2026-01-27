@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import  FindClimates from "../api/fetchClimateAverages";
+// import {recommendCrop} from "../api/recommendCrop ";
 
 const CropPrediction = ({ isAuthenticated }) => {
   const navigate = useNavigate();
@@ -73,9 +75,15 @@ const CropPrediction = ({ isAuthenticated }) => {
 
           try {
             // Reverse geocoding using OpenStreetMap Nominatim
-            const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-            );
+          const res = await fetch(
+  `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+  {
+    headers: {
+      "User-Agent": "CropPredictionApp/1.0"
+    }
+  }
+);
+
             const data = await res.json();
 
             setLocation({
@@ -121,137 +129,143 @@ const CropPrediction = ({ isAuthenticated }) => {
     setAdvancedFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const sendToBackend = async (payload) => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      // Replace with your actual backend API endpoint
-      const API_URL = 'http://localhost:5000/api/crop/recommend';
-      
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(payload)
-      });
+const sendToBackend = async (payload) => {
+  try {
+    setLoading(true);
+    setError('');
 
-      if (!response.ok) {
-        throw new Error('Failed to get predictions from server');
-      }
+    const API_URL = 'http://localhost:5000/api/crop/recommend';
 
-      const data = await response.json();
-      return data.predictions || [];
-      
-    } catch (error) {
-      console.error('API Error:', error);
-      setError('Failed to connect to prediction service. Please try again.');
-      // Return mock data for demo purposes
-      return payload;
-    } finally {
-      setLoading(false);
-    }
-  };
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(payload)
+    });
 
-
-
-  const handleBasicSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated) {
-      alert('Please login to get predictions');
-      navigate('/login');
-      return;
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
     }
 
-    if (!location || !basicFormData.soilColor) {
-      alert('Please enable location and select soil type');
-      return;
-    }
+    const data = await response.json();
 
-    // Get predefined nutrient data for selected soil type
+    // ✅ normalize response
+    return (
+      data.predictions ||
+      data.recommendations ||
+      data.data ||
+      []
+    );
+
+  } catch (err) {
+    console.error('API Error:', err);
+    setError('Prediction service unavailable. Showing sample results.');
+   
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+// submit basic details
+const handleBasicSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!isAuthenticated) {
+    navigate("/login");
+    return;
+  }
+
+  if (!location || !basicFormData.soilColor) {
+    setError("Location and soil type are required");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError("");
+
     const soilData = soilNutrientData[basicFormData.soilColor];
-    if (!soilData) {
-      setError('Invalid soil type selected');
-      return;
-    }
 
-    // Prepare payload for backend
-    const payload = {
-      type: 'basic',
-      location: {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        name: location.name
-      },
-      soil_type: basicFormData.soilColor,
-      nutrients: {
-        nitrogen: soilData.nitrogen,
-        phosphorus: soilData.phosphorus,
-        potassium: soilData.potassium,
-        ph: soilData.ph
-      },
-      timestamp: new Date().toISOString()
+    const climate = await FindClimates(
+      location.latitude,
+      location.longitude,
+      2023,
+      2024
+    );
+
+    const finalClimate = {
+      temperature: climate?.avgTemp ?? 25,
+      humidity: climate?.avgHumidity ?? 50,
+      rainfall: climate?.avgRain ?? 100
     };
 
-    console.log('Sending to backend (Basic):', payload);
-
-    // Send to backend API
-    const apiPredictions = await sendToBackend(payload);
-    
-    if (apiPredictions.length > 0) {
-      setPredictions(apiPredictions);
-      setShowResults(true);
-    }
-  };
-
-  const handleAdvancedSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated) {
-      alert('Please login to get predictions');
-      navigate('/login');
-      return;
-    }
-
-    // Validate required fields
-    const required = ['nitrogen', 'phosphorus', 'potassium', 'ph', 'temperature', 'humidity', 'rainfall'];
-    const missing = required.filter(field => !advancedFormData[field]);
-    
-    if (missing.length > 0) {
-      alert(`Please fill in all required fields: ${missing.join(', ')}`);
-      return;
-    }
-
-    // Prepare payload for backend
+    /* ✅ PAYLOAD MATCHES FASTAPI 1:1 */
     const payload = {
-      type: 'advanced',
-      nutrients: {
-        nitrogen: advancedFormData.nitrogen,
-        phosphorus: advancedFormData.phosphorus,
-        potassium: advancedFormData.potassium,
-        ph: advancedFormData.ph
-      },
-      climate: {
-        temperature: advancedFormData.temperature,
-        humidity: advancedFormData.humidity,
-        rainfall: advancedFormData.rainfall
-      },
-      timestamp: new Date().toISOString()
+      nitrogen: Number(soilData.nitrogen),
+      phosphorous: Number(soilData.phosphorus), // 👈 spelling FIXED
+      potassium: Number(soilData.potassium),
+      ph: Number(soilData.ph),
+      temperature: finalClimate.temperature,
+      humidity: finalClimate.humidity,
+      rainfall: finalClimate.rainfall
     };
 
-    console.log('Sending to backend (Advanced):', payload);
+    const result = await sendToBackend(payload);
 
-    // Send to backend API
-    const apiPredictions = await sendToBackend(payload);
-    
-    if (apiPredictions.length > 0) {
-      setPredictions(apiPredictions);
+    if (Array.isArray(result) && result.length > 0) {
+      setPredictions(result);
       setShowResults(true);
+    } else {
+      setError("No predictions received");
     }
+
+  } catch (err) {
+    console.error("Basic prediction error:", err);
+    setError("Failed to fetch climate or prediction data");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+// submit form based input
+ const handleAdvancedSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!isAuthenticated) {
+    navigate('/login');
+    return;
+  }
+
+  if (!location) {
+    setError('Location is required for detailed prediction');
+    return;
+  }
+
+  const payload = {
+      nitrogen: Number(advancedFormData.nitrogen),
+      phosphorus: Number(advancedFormData.phosphorus),
+      potassium: Number(advancedFormData.potassium),
+      ph: Number(advancedFormData.ph),
+
+      temperature: Number(advancedFormData.temperature),
+      humidity: Number(advancedFormData.humidity),
+      rainfall: Number(advancedFormData.rainfall)
   };
+
+  const result = await sendToBackend(payload);
+
+  if (Array.isArray(result) && result.length) {
+    setPredictions(result);
+    setShowResults(true);
+  }
+};
+
 
   const soilColors = [
     { value: 'Black', label: 'Black Soil', color: 'bg-gray-900' },

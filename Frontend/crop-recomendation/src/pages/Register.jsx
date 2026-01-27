@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from "../api/auth";
 
-const Register = ({ onRegister }) => {
+const Register = () => {
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
@@ -14,7 +16,8 @@ const Register = ({ onRegister }) => {
     farmType: 'crops',
     agreeTerms: false
   });
-  const [errors, setErrors] = useState({});
+   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -51,13 +54,6 @@ const Register = ({ onRegister }) => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
-    if (!formData.farmSize) {
-      newErrors.farmSize = 'Farm size is required';
-    }
-    
-    if (!formData.location) {
-      newErrors.location = 'Location is required';
-    }
     
     if (!formData.agreeTerms) {
       newErrors.agreeTerms = 'You must agree to the terms';
@@ -66,30 +62,45 @@ const Register = ({ onRegister }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const validationErrors = validateForm();
-    
-    if (Object.keys(validationErrors).length === 0) {
-      // Simulate API call
-      console.log('Registration data:', formData);
-      
-      // Mock successful registration
-      onRegister({
-        id: Date.now(),
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        farmSize: formData.farmSize,
-        location: formData.location,
-        farmType: formData.farmType
-      });
-      
-      navigate('/dashboard');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setErrors({});
+  setServerError("");
+
+  const validationErrors = validateForm();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
+
+  if (formData.password !== formData.confirmPassword) {
+    setErrors({ confirmPassword: "Passwords do not match" });
+    return;
+  }
+
+  try {
+    const payload = {
+      username: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password
+    };
+
+    const response = await registerUser(payload);
+    console.log(response);
+    localStorage.setItem("token", response.token);
+    navigate("/dashboard");
+
+  } catch (error) {
+    if (Array.isArray(error?.errors)) {
+      setServerError(error.errors.join(", "));
     } else {
-      setErrors(validationErrors);
+      setServerError(error?.msg || "Registration failed");
     }
-  };
+  }
+};
+
+
 
   return (
     <div className="min-h-[80vh] py-12">
@@ -154,57 +165,12 @@ const Register = ({ onRegister }) => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-gray-700 mb-2">Farm Size *</label>
-                  <div className="relative">
-                    <i className="fas fa-ruler-combined absolute left-3 top-3 text-gray-400"></i>
-                    <input
-                      type="text"
-                      name="farmSize"
-                      value={formData.farmSize}
-                      onChange={handleChange}
-                      className={`input-field pl-10 ${errors.farmSize ? 'border-red-500' : ''}`}
-                      placeholder="e.g., 5 hectares"
-                    />
-                  </div>
-                  {errors.farmSize && <p className="text-red-500 text-sm mt-1">{errors.farmSize}</p>}
-                </div>
+        
 
-                <div>
-                  <label className="block text-gray-700 mb-2">Location *</label>
-                  <div className="relative">
-                    <i className="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400"></i>
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      className={`input-field pl-10 ${errors.location ? 'border-red-500' : ''}`}
-                      placeholder="State, Country"
-                    />
-                  </div>
-                  {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
-                </div>
+          
               </div>
 
-              <div>
-                <label className="block text-gray-700 mb-2">Farming Type</label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {['crops', 'vegetables', 'fruits', 'mixed'].map(type => (
-                    <label key={type} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="farmType"
-                        value={type}
-                        checked={formData.farmType === type}
-                        onChange={handleChange}
-                        className="h-4 w-4 text-farm-green focus:ring-farm-green"
-                      />
-                      <span className="ml-2 text-gray-700 capitalize">{type}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
+       
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>

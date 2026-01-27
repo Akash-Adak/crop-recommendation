@@ -1,92 +1,132 @@
 import axios from "axios";
 import dotenv from "dotenv";
-
 import { getWeatherData } from "../services/weatherService.js";
 import { getMarketPrice } from "../services/marketService.js";
-import Prediction from '../models/Prediction.js';
+import Prediction from "../models/Prediction.js";
 
 dotenv.config();
 
 export async function recommendCrop(req, res) {
   try {
-    let { N, P, K, ph, lat, lon, ...otherInputs } = req.body;
+    /* ================= JWT USER ================= */
+    const user = req.user; // from authMiddleware
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-    // Default values
-    let finalTemperature = parseFloat(otherInputs.temperature) || 25.0;
-    let finalHumidity = parseFloat(otherInputs.humidity) || 50.0;
-    let finalRainfall = parseFloat(otherInputs.rainfall) || 100.0;
-    let weatherSource = "Manual Input";
+    /* ================= INPUT MAPPING ================= */
+    const {
+      nutrients = {},
+      climate = {},
+      location = {}
+    } = req.body;
 
-    // Fetch live weather if coordinates exist
+    const N  = Number(nutrients.nitrogen);
+    const P  = Number(nutrients.phosphorus);
+    const K  = Number(nutrients.potassium);
+    const ph = Number(nutrients.ph);
+
+    const lat = location.latitude;
+    const lon = location.longitude;
+
+    let finalTemperature = Number(climate.temperature) || 25;
+    let finalHumidity    = Number(climate.humidity) || 50;
+    let finalRainfall    = Number(climate.rainfall) || 100;
+    let weatherSource    = "Manual Input";
+
+    /* ================= WEATHER FETCH ================= */
     if (lat && lon) {
       const weather = await getWeatherData(lat, lon);
-
       if (weather) {
         finalTemperature = weather.temperature;
-        finalHumidity = weather.humidity;
-        finalRainfall = weather.rainfall;
-        weatherSource = `OpenWeatherMap (${weather.location})`;
+        finalHumidity    = weather.humidity;
+        finalRainfall    = weather.rainfall;
+        weatherSource    = `OpenWeatherMap (${weather.location})`;
       }
     }
 
-    // Payload for Python ML service
+    /* ================= ML PAYLOAD ================= */
     const aiPayload = {
-      nitrogen: parseFloat(N),
-      phosphorous: parseFloat(P),
-      potassium: parseFloat(K),
-      ph: parseFloat(ph),
+      nitrogen: N,
+      phosphorous: P,
+      potassium: K,
+      ph,
       temperature: finalTemperature,
       humidity: finalHumidity,
       rainfall: finalRainfall
     };
 
-    // Call Python ML server
+    /* ================= ML SERVER ================= */
     const mlResponse = await axios.post(
       process.env.ML_SERVER_URL || "http://localhost:8000/predict",
-      aiPayload
+      aiPayload,
+      { timeout: 5000 }
     );
 
     const { recommended_crop, top_3_crops } = mlResponse.data;
 
+    if (!recommended_crop) {
+      return res.status(500).json({
+        success: false,
+        message: "ML model did not return prediction"
+      });
+    }
+
     const estimatedPrice = getMarketPrice(recommended_crop);
 
-    // === [NEW PART] SAVE TO DATABASE ===
+    /* ================= SAVE HISTORY ================= */
     try {
-      const newRecord = new Prediction({
+      await Prediction.create({
+        userId: user.id,
         inputs: {
-            N, P, K, ph, lat, lon,
-            temperature: finalTemperature,
-            humidity: finalHumidity,
-            rainfall: finalRainfall
+          nitrogen: N,
+          phosphorus: P,
+          potassium: K,
+          ph,
+          temperature: finalTemperature,
+          humidity: finalHumidity,
+          rainfall: finalRainfall
         },
         predicted_crop: recommended_crop,
-        market_price: estimatedPrice
+        alternatives: top_3_crops,
+        market_price: estimatedPrice,
+        weather_source: weatherSource
       });
-
-      await newRecord.save();
-      console.log("✅ Prediction saved to history!");
     } catch (dbError) {
-      console.error("⚠️ Failed to save history:", dbError.message);
-      // We do not stop the response if saving fails
+      console.error("⚠️ Prediction save failed:", dbError.message);
     }
-    // ===================================
 
-    res.json({
+    /* ================= RESPONSE ================= */
+    return res.status(200).json({
       success: true,
-      prediction: recommended_crop,
+      predictions: [
+        {
+          id: 1,
+          name: recommended_crop,
+          confidence: "90%",
+          season: "Seasonal",
+          profit: "High",
+          duration: "100-120 days",
+          water: "Medium",
+          fertilizer: "Recommended as per soil"
+        }
+      ],
       top_alternatives: top_3_crops,
       market_price: estimatedPrice,
       currency: "INR/Quintal",
       weather_used: {
         source: weatherSource,
-        temp: finalTemperature,
-        humid: finalHumidity,
-        rain: finalRainfall
+        temperature: finalTemperature,
+        humidity: finalHumidity,
+        rainfall: finalRainfall
       }
     });
 
   } catch (err) {
-    console.error("Error in recommendation flow:", err.message);
-    res.status(500).json({ error: "Failed to process crop recommendation" });
+    console.error("❌ Recommendation error:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to process crop recommendation"
+    });
   }
 }

@@ -1,7 +1,9 @@
 import { Router } from "express";
-const router = Router();
+import authMiddleware from "../middlewares/authMiddleware.js";
 import { recommendCrop } from "../controllers/cropController.js";
 
-router.post("/recommend", recommendCrop);
+const router = Router();
+
+router.post("/recommend", authMiddleware, recommendCrop);
 
 export default router;

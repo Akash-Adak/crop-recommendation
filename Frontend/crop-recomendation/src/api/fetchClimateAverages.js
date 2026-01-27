@@ -1,5 +1,5 @@
 // Fetch NASA POWER climate averages for a given lat/lng and year range
- async function fetchClimateAverages(lat, lng, startYear, endYear) {
+ export default async function FindClimates(lat, lng, startYear, endYear) {
   try {
     const response = await fetch(
       `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,PRECTOTCORR,RH2M&community=AG&longitude=${lng}&latitude=${lat}&start=${startYear}&end=${endYear}&format=JSON`
@@ -53,7 +53,7 @@
     throw err;
   }
 }
-export default fetchClimateAverages;
+// export default FindClimates;
 
 // (async () => {
 //   const lat = 22.0627;   // Example: Haldia, India

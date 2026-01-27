@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CropPrediction from './pages/CropPrediction';
-import WeatherWidget from './api/NasaClimateWidget';
+// import WeatherWidget from './api/NasaClimateWidget';
 
 
 const App = () => {
