@@ -1,5 +1,5 @@
 const API_URL = "http://localhost:5000/api/auth";
-
+import axios from "axios";
 export const registerUser = async (data) => {
   const response = await fetch(`${API_URL}/register`, {
     method: "POST",
@@ -34,4 +34,13 @@ export const loginUser = async (data) => {
   }
 
   return result;
+};
+export const fetchPredictionHistory = () => {
+  const token = localStorage.getItem("token");
+
+  return axios.get("http://localhost:5000/api/crop/history", {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
 };
