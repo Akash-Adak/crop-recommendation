@@ -27,10 +27,10 @@ const Navbar = ({ isAuthenticated, onLogout, user }) => {
             </div>
             <div className="flex flex-col">
               <span className="text-2xl font-bold text-gray-900 font-roboto-slab tracking-tight">
-                <span className="text-farm-green">Agro</span>
-                <span className="text-gray-800">Advisor</span>
+                <span className="text-farm-green">Meri</span>
+                <span className="text-gray-800">Fasal</span>
               </span>
-              <p className="text-xs text-gray-500 font-medium tracking-wide">Smart Farming Platform</p>
+              <p className="text-xs text-gray-500 font-medium tracking-wide">Har Khet ki Apni Pehchaan</p>
             </div>
           </Link>
 

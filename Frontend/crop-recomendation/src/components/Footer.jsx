@@ -7,7 +7,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-2 mb-6">
               <i className="fas fa-seedling text-3xl text-farm-light"></i>
-              <span className="text-2xl font-bold font-roboto-slab">AgroAdvisor</span>
+              <span className="text-2xl font-bold font-roboto-slab">MeriFasal</span>
             </div>
             <p className="text-gray-400 mb-6">
               Empowering farmers with AI-driven insights for sustainable and profitable agriculture.
@@ -62,7 +62,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-3 text-gray-400">
                 <i className="fas fa-envelope text-farm-light"></i>
-                <span>support@agroadvisor.com</span>
+                <span>support@MeriFasal.com</span>
               </li>
               <li className="flex items-center space-x-3 text-gray-400">
                 <i className="fas fa-map-marker-alt text-farm-light"></i>
@@ -86,7 +86,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-          <p>© {new Date().getFullYear()} AgroAdvisor. All rights reserved. | Designed for Indian Farmers</p>
+          <p>© {new Date().getFullYear()} MeriFasal. All rights reserved. | Designed for Indian Farmers</p>
           <p className="mt-2 text-sm">Partnered with ICAR, Ministry of Agriculture, Government of India</p>
         </div>
       </div>

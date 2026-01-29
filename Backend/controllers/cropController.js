@@ -6,35 +6,85 @@ import Prediction from "../models/Prediction.js";
 
 dotenv.config();
 
+/* ================= SAFE NUMBER PARSER ================= */
+const toNumber = (value, fallback = null) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+};
+
 export async function recommendCrop(req, res) {
   try {
     /* ================= JWT USER ================= */
-    const user = req.user; // from authMiddleware
+    const user = req.user;
+    console.log("user details",user);
+
     if (!user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized"
+      });
+    }
+   
+
+    /* ================= INPUT NORMALIZATION ================= */
+    const body = req.body || {};
+
+    // Detect flat (FastAPI-style) payload
+    const isFlatPayload =
+      body.nitrogen !== undefined &&
+      body.phosphorous !== undefined;
+
+    const nutrients = body.nutrients || {};
+    const climate   = body.climate   || {};
+    const location  = body.location  || {};
+
+    /* ================= FINAL ML INPUT ================= */
+    const N = isFlatPayload
+      ? toNumber(body.nitrogen)
+      : toNumber(nutrients.nitrogen);
+
+    const P = isFlatPayload
+      ? toNumber(body.phosphorous)
+      : toNumber(nutrients.phosphorus);
+
+    const K = isFlatPayload
+      ? toNumber(body.potassium)
+      : toNumber(nutrients.potassium);
+
+    const ph = isFlatPayload
+      ? toNumber(body.ph)
+      : toNumber(nutrients.ph);
+
+    let finalTemperature = isFlatPayload
+      ? toNumber(body.temperature, 25)
+      : toNumber(climate.temperature, 25);
+
+    let finalHumidity = isFlatPayload
+      ? toNumber(body.humidity, 50)
+      : toNumber(climate.humidity, 50);
+
+    let finalRainfall = isFlatPayload
+      ? toNumber(body.rainfall, 100)
+      : toNumber(climate.rainfall, 100);
+
+    let weatherSource = "Manual Input";
+
+    /* ================= BASIC VALIDATION ================= */
+    if (
+      [N, P, K, ph, finalTemperature, finalHumidity, finalRainfall].some(
+        v => v === null
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or missing input values"
+      });
     }
 
-    /* ================= INPUT MAPPING ================= */
-    const {
-      nutrients = {},
-      climate = {},
-      location = {}
-    } = req.body;
-
-    const N  = Number(nutrients.nitrogen);
-    const P  = Number(nutrients.phosphorus);
-    const K  = Number(nutrients.potassium);
-    const ph = Number(nutrients.ph);
-
+    /* ================= WEATHER FETCH ================= */
     const lat = location.latitude;
     const lon = location.longitude;
 
-    let finalTemperature = Number(climate.temperature) || 25;
-    let finalHumidity    = Number(climate.humidity) || 50;
-    let finalRainfall    = Number(climate.rainfall) || 100;
-    let weatherSource    = "Manual Input";
-
-    /* ================= WEATHER FETCH ================= */
     if (lat && lon) {
       const weather = await getWeatherData(lat, lon);
       if (weather) {
@@ -45,7 +95,7 @@ export async function recommendCrop(req, res) {
       }
     }
 
-    /* ================= ML PAYLOAD ================= */
+    /* ================= ML PAYLOAD (FastAPI CONTRACT) ================= */
     const aiPayload = {
       nitrogen: N,
       phosphorous: P,
@@ -56,6 +106,8 @@ export async function recommendCrop(req, res) {
       rainfall: finalRainfall
     };
 
+    console.log("🚜 ML Payload → FastAPI:", aiPayload);
+
     /* ================= ML SERVER ================= */
     const mlResponse = await axios.post(
       process.env.ML_SERVER_URL || "http://localhost:8000/predict",
@@ -63,7 +115,7 @@ export async function recommendCrop(req, res) {
       { timeout: 5000 }
     );
 
-    const { recommended_crop, top_3_crops } = mlResponse.data;
+    const { recommended_crop, top_3_crops, confidence } = mlResponse.data;
 
     if (!recommended_crop) {
       return res.status(500).json({
@@ -72,12 +124,13 @@ export async function recommendCrop(req, res) {
       });
     }
 
+    /* ================= MARKET PRICE ================= */
     const estimatedPrice = getMarketPrice(recommended_crop);
 
     /* ================= SAVE HISTORY ================= */
     try {
       await Prediction.create({
-        userId: user.id,
+        user_id: user.email,
         inputs: {
           nitrogen: N,
           phosphorus: P,
@@ -103,10 +156,10 @@ export async function recommendCrop(req, res) {
         {
           id: 1,
           name: recommended_crop,
-          confidence: "90%",
+          confidence: `${Math.round((confidence || 0.9) * 100)}%`,
           season: "Seasonal",
           profit: "High",
-          duration: "100-120 days",
+          duration: "100–120 days",
           water: "Medium",
           fertilizer: "Recommended as per soil"
         }
@@ -123,7 +176,7 @@ export async function recommendCrop(req, res) {
     });
 
   } catch (err) {
-    console.error("❌ Recommendation error:", err.message);
+    console.error("❌ Recommendation error:", err.response?.data || err.message);
     return res.status(500).json({
       success: false,
       message: "Failed to process crop recommendation"
