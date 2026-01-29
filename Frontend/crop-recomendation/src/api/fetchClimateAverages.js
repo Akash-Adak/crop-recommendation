@@ -32,16 +32,16 @@
     // Compute averages per year
     const results = Object.entries(yearlyData).map(([_, values]) => {
       const meanTemp = values.temps.reduce((a, b) => a + b, 0) / values.temps.length;
-      const totalRain = values.rains.reduce((a, b) => a + b, 0); // mm/year
+      const totalRain = values.rains.reduce((a, b) => a + b, 0)/10;
       const meanHumidity = values.hums.reduce((a, b) => a + b, 0) / values.hums.length;
       return { meanTemp, totalRain, meanHumidity };
     });
-
+console.log("res",results);
     // Compute overall averages across all years
     const avgTemp = results.reduce((a, b) => a + b.meanTemp, 0) / results.length;
     const avgRain = results.reduce((a, b) => a + b.totalRain, 0) / results.length;
     const avgHumidity = results.reduce((a, b) => a + b.meanHumidity, 0) / results.length;
-
+    console.log(avgTemp,avgHumidity,avgRain);
     // Return only the three average values
     return {
       avgTemp: Number(avgTemp.toFixed(3)),
@@ -53,14 +53,5 @@
     throw err;
   }
 }
-// export default FindClimates;
 
-// (async () => {
-//   const lat = 22.0627;   // Example: Haldia, India
-//   const lng = 88.0833;
-
-//   const averages = await fetchClimateAverages(lat, lng, "2015", "2024");
-//   console.log("Climate Averages:", averages);
-//   // Output: { avgTemp: 23.456, avgRain: 1265.432, avgHumidity: 81.567 }
-// })();
 

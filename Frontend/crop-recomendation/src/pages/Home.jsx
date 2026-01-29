@@ -51,7 +51,7 @@ const Home = () => {
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-bold font-roboto-slab mb-6">
-              Smart Farming, <span className="text-sun-yellow">Brighter Future</span>
+              Fasal chunne ka  <span className="text-sun-yellow">Aasan Tarika</span>
             </h1>
             <p className="text-xl mb-10 text-white/90">
               Empowering Indian farmers with AI-powered crop guidance and data-driven farming insights.

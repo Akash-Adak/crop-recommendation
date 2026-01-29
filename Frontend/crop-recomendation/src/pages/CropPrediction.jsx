@@ -249,7 +249,7 @@ const handleBasicSubmit = async (e) => {
 
   const payload = {
       nitrogen: Number(advancedFormData.nitrogen),
-      phosphorus: Number(advancedFormData.phosphorus),
+      phosphorous: Number(advancedFormData.phosphorus),
       potassium: Number(advancedFormData.potassium),
       ph: Number(advancedFormData.ph),
 
