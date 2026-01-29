@@ -174,10 +174,7 @@ const sendToBackend = async (payload) => {
 const handleBasicSubmit = async (e) => {
   e.preventDefault();
 
-  if (!isAuthenticated) {
-    navigate("/login");
-    return;
-  }
+
 
   if (!location || !basicFormData.soilColor) {
     setError("Location and soil type are required");
@@ -237,10 +234,7 @@ const handleBasicSubmit = async (e) => {
  const handleAdvancedSubmit = async (e) => {
   e.preventDefault();
 
-  if (!isAuthenticated) {
-    navigate('/login');
-    return;
-  }
+
 
   if (!location) {
     setError('Location is required for detailed prediction');
@@ -449,6 +443,7 @@ const handleBasicSubmit = async (e) => {
                 {/* Submit Button */}
                 <button
                   onClick={handleBasicSubmit}
+                  type="button"
                   disabled={loading || !location || !basicFormData.soilColor}
                   className={`w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center ${
                     location && basicFormData.soilColor

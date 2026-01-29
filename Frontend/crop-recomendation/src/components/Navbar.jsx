@@ -8,9 +8,7 @@ const Navbar = ({ isAuthenticated, onLogout, user }) => {
   const navLinks = [
     { path: '/', label: 'Home', icon: 'fa-home' },
     { path: '/recommendation', label: 'Crop Advisor', icon: 'fa-leaf' },
-    { path: '/dashboard', label: 'Dashboard', icon: 'fa-chart-bar', auth: true },
-    { path: '/market', label: 'Market Prices', icon: 'fa-tag' },
-    { path: '/weather', label: 'Weather', icon: 'fa-cloud-sun' },
+    { path: '/dashboard', label: 'Dashboard', icon: 'fa-chart-bar', auth: true }
   ];
 
   return (

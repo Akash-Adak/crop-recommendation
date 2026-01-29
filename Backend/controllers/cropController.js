@@ -1,6 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
-import { getWeatherData } from "../services/weatherService.js";
+// import { getWeatherData } from "../../Frontend/crop-recomendation/src/api/weatherService.js";
 import { getMarketPrice } from "../services/marketService.js";
 import Prediction from "../models/Prediction.js";
 
@@ -183,3 +183,20 @@ export async function recommendCrop(req, res) {
     });
   }
 }
+
+export const getPredictionHistory = async (req, res) => {
+  try {
+    const email = req.user.email; // 🔐 from JWT
+
+    const history = await Prediction.find({ user_id: email })
+      .sort({ created_at: -1 });
+
+    res.json({
+      success: true,
+      history
+    });
+  } catch (err) {
+    console.error("History fetch error:", err);
+    res.status(500).json({ message: "Failed to fetch history" });
+  }
+};

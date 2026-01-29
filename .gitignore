@@ -14,7 +14,7 @@ env/
 .env
 Backend/.env
 ML/.env
-*.env
+
 
 # --- IDE Junk ---
 .vscode/

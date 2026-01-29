@@ -23,7 +23,10 @@ const Login = ({ onLogin }) => {
 
       // ✅ store JWT
       localStorage.setItem("token", response.token);
-    onLogin(response.user);  
+      localStorage.setItem("user", formData.email);
+      console.log(response);
+      console.log(response.token);
+    onLogin(formData.email,response.token);  
       // ✅ redirect
       navigate("/");
     } catch (error) {

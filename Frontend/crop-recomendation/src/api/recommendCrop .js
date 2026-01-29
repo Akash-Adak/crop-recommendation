@@ -1,3 +1,5 @@
+
+
 export const recommendCrop = async (data) => {
   const res = await fetch("http://localhost:5000/api/crop/recommend", {
     method: "POST",
@@ -6,3 +8,4 @@ export const recommendCrop = async (data) => {
   });
   return res.json();
 };
+
