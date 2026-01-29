@@ -54,7 +54,7 @@ const Home = () => {
               Smart Farming, <span className="text-sun-yellow">Brighter Future</span>
             </h1>
             <p className="text-xl mb-10 text-white/90">
-              AI-powered crop recommendations and farming insights for modern Indian farmers
+              Empowering Indian farmers with AI-powered crop guidance and data-driven farming insights.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
